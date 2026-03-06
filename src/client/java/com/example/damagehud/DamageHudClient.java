@@ -6,9 +6,9 @@ import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
@@ -16,6 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.Timer;
 
 public class DamageHudClient implements ClientModInitializer {
     public static final String MOD_ID = "damage-hud";
@@ -23,7 +24,7 @@ public class DamageHudClient implements ClientModInitializer {
 
     private static final Identifier SPRITE = Identifier.fromNamespaceAndPath("damage-hud", "textures/gui/footsteps_indicator.png");
 
-    public static List<Entity> nearbyEntities;
+    private List<LivingEntity> nearbyEntities;
 
 	@Override
 	public void onInitializeClient() {
@@ -31,7 +32,7 @@ public class DamageHudClient implements ClientModInitializer {
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             LocalPlayer player = client.player;
             if (player == null) return;
-            nearbyEntities = getNearbyEntities(player, 20);
+            nearbyEntities = getNearbyMovingEntities(player, 20);
 
         });
 
@@ -60,9 +61,12 @@ public class DamageHudClient implements ClientModInitializer {
 
 	}
 
-    public List<Entity> getNearbyEntities(Player player, double radius) {
+    public List<LivingEntity> getNearbyMovingEntities(Player player, double radius) {
         AABB box = player.getBoundingBox().inflate(radius);
-        return player.level().getEntities(player, box, e -> true);
+        return player.level().getEntitiesOfClass(LivingEntity.class, box, e -> {
+            Vec3 v = e.getDeltaMovement();
+            return Math.abs(v.x) > 0.0001 || Math.abs(v.z) > 0.0001;
+        });
     }
 
 }

@@ -21,10 +21,11 @@ public class PointerDrawer {
             int textureHeight,
             int baseColor)
     {
-        Vec3 relativePos = position.subtract(player.position());
-        double angle = (Math.atan2(relativePos.z, relativePos.x) - player.getYRot() * Math.PI / 180) - Math.PI/2;
-        double distanceFromPlayer = player.position().distanceTo(position);
-        int alphaValue = (int) Math.clamp(distanceFromPlayer, 0, 255); //TODO: FIX THIS CRAP
+        Vec3 relativePosition = position.subtract(player.position());
+        double distanceFromPlayer = relativePosition.distanceTo(Vec3.ZERO);
+
+        double angle = (Math.atan2(relativePosition.z, relativePosition.x) - player.getYRot() * Math.PI / 180) - Math.PI/2;
+        int alphaValue = (int) Math.clamp((-distanceFromPlayer) * 12.75 + 255, 0, 255);
         int color = (alphaValue << 24) | baseColor;
 
         Minecraft client = Minecraft.getInstance();
